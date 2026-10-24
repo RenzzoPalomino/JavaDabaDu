@@ -1,6 +1,8 @@
 package com.company.mi_api.controller;
 
+import com.company.mi_api.dto.ActualizarUsuarioRequest;
 import com.company.mi_api.dto.CrearUsuarioRequest;
+import com.company.mi_api.dto.UsuarioResponse;
 import com.company.mi_api.model.Usuario;
 import com.company.mi_api.service.UsuarioService;
 import jakarta.validation.Valid;
@@ -29,9 +31,11 @@ public class UsuarioController {
      * @return lista de usuarios con código 200 OK
      */
     @GetMapping
-    public ResponseEntity<List<Usuario>> obtenerTodos() {
+    public ResponseEntity<List<UsuarioResponse>> obtenerTodos() {
         log.info("GET /api/usuarios - Obteniendo todos los usuarios");
-        List<Usuario> usuarios = usuarioService.obtenerTodos();
+        List<UsuarioResponse> usuarios = usuarioService.obtenerTodos().stream()
+                .map(UsuarioResponse::fromEntity)
+                .toList();
         return ResponseEntity.ok(usuarios);
     }
 
@@ -43,10 +47,10 @@ public class UsuarioController {
      * @return usuario encontrado con código 200 OK
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Usuario> obtenerPorId(@PathVariable Long id) {
+    public ResponseEntity<UsuarioResponse> obtenerPorId(@PathVariable Long id) {
         log.info("GET /api/usuarios/{} - Obteniendo usuario por ID", id);
         Usuario usuario = usuarioService.obtenerPorId(id);
-        return ResponseEntity.ok(usuario);
+        return ResponseEntity.ok(UsuarioResponse.fromEntity(usuario));
     }
 
     /**
@@ -57,7 +61,7 @@ public class UsuarioController {
      * @return usuario creado con código 201 CREATED
      */
     @PostMapping
-    public ResponseEntity<Usuario> crear(@Valid @RequestBody CrearUsuarioRequest request) {
+    public ResponseEntity<UsuarioResponse> crear(@Valid @RequestBody CrearUsuarioRequest request) {
         log.info("POST /api/usuarios - Creando nuevo usuario con email: {}", request.getEmail());
 
         // Convertir DTO a Entity
@@ -66,7 +70,7 @@ public class UsuarioController {
         usuario.setEmail(request.getEmail());
 
         Usuario usuarioGuardado = usuarioService.crear(usuario);
-        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioGuardado);
+        return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponse.fromEntity(usuarioGuardado));
     }
 
     /**
@@ -78,12 +82,18 @@ public class UsuarioController {
      * @return usuario actualizado con código 200 OK
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Usuario> actualizar(
+    public ResponseEntity<UsuarioResponse> actualizar(
             @PathVariable Long id,
-            @RequestBody Usuario usuario) {
+            @Valid @RequestBody ActualizarUsuarioRequest request) {
         log.info("PUT /api/usuarios/{} - Actualizando usuario", id);
+
+        // Convertir DTO a Entity
+        Usuario usuario = new Usuario();
+        usuario.setNombre(request.getNombre());
+        usuario.setEmail(request.getEmail());
+
         Usuario usuarioActualizado = usuarioService.actualizar(id, usuario);
-        return ResponseEntity.ok(usuarioActualizado);
+        return ResponseEntity.ok(UsuarioResponse.fromEntity(usuarioActualizado));
     }
 
     /**
@@ -108,9 +118,11 @@ public class UsuarioController {
      * @return lista de usuarios encontrados
      */
     @GetMapping("/buscar")
-    public ResponseEntity<List<Usuario>> buscarPorNombre(@RequestParam String nombre) {
+    public ResponseEntity<List<UsuarioResponse>> buscarPorNombre(@RequestParam String nombre) {
         log.info("GET /api/usuarios/buscar - Buscando usuarios con nombre: {}", nombre);
-        List<Usuario> usuarios = usuarioService.buscarPorNombre(nombre);
+        List<UsuarioResponse> usuarios = usuarioService.buscarPorNombre(nombre).stream()
+                .map(UsuarioResponse::fromEntity)
+                .toList();
         return ResponseEntity.ok(usuarios);
     }
 }

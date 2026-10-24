@@ -16,12 +16,22 @@ mi-api/
 │   ├── main/java/com/company/mi_api/
 │   │   ├── MiApiApplication.java          (Punto de entrada)
 │   │   ├── model/
-│   │   │   └── Usuario.java               (Entidad JPA)
-│   │   ├── controller/                    (⬜ Por implementar)
-│   │   ├── service/ no te                      (⬜ Por implementar)
-│   │   ├── repository/                    (⬜ Por implementar)
-│   │   └── config/                        (⬜ Por implementar)
+│   │   │   └── Usuario.java               (Entidad JPA completa)
+│   │   ├── controller/
+│   │   │   └── UsuarioController.java     (REST endpoints CRUD)
+│   │   ├── service/
+│   │   │   └── UsuarioService.java        (Lógica de negocio)
+│   │   ├── repository/
+│   │   │   └── UsuarioRepository.java     (JpaRepository + custom queries)
+│   │   ├── dto/
+│   │   │   ├── CrearUsuarioRequest.java   (Request validation)
+│   │   │   └── ErrorResponse.java         (Respuesta de error global)
+│   │   ├── exception/
+│   │   │   └── UsuarioNoEncontradoException.java
+│   │   └── config/
+│   │       └── GlobalExceptionHandler.java (Manejo centralizado de excepciones)
 │   └── test/
+│       └── MiApiApplicationTests.java
 ├── build.gradle                           (Dependencias Gradle)
 ├── settings.gradle
 └── gradle/
@@ -71,46 +81,54 @@ JUnit 5 (via platform launcher)
 
 ---
 
-### 🔄 Fase 2: CRUD & Repositorio (SIGUIENTE)
+### ✅ Fase 2: CRUD & Repositorio (COMPLETADA)
 **Objetivo**: Implementar operaciones básicas de base de datos
 
-- [ ] **Repository Pattern**
-  - [ ] Crear `UsuarioRepository` (extends JpaRepository)
-  - [ ] Métodos custom queries (@Query)
-  - [ ] Métodos finder (findByEmail, findById)
+- [x] **Repository Pattern**
+  - [x] Crear `UsuarioRepository` (extends JpaRepository)
+  - [x] Métodos custom queries (@Query)
+  - [x] Métodos finder (findByEmail, findById)
 
-- [ ] **Service Layer**
-  - [ ] Crear `UsuarioService` con lógica de negocio
-  - [ ] Manejar excepciones (UsuarioNotFoundException, DuplicateEmailException)
-  - [ ] Transacciones (@Transactional)
+- [x] **Service Layer**
+  - [x] Crear `UsuarioService` con lógica de negocio
+  - [x] Manejar excepciones (UsuarioNoEncontradoException)
+  - [x] Transacciones (@Transactional)
 
-**Conceptos**: Repository, JpaRepository, Query derivation, Service pattern, @Transactional
+- [x] **Global Exception Handler**
+  - [x] Crear `GlobalExceptionHandler` con @ControllerAdvice
+  - [x] Mapeo de UsuarioNoEncontradoException → 404
+  - [x] Mapeo de IllegalArgumentException → 400
+  - [x] Mapeo de MethodArgumentNotValidException → 400
+  - [x] Crear `ErrorResponse` DTO para respuestas consistentes
+
+**Conceptos**: Repository, JpaRepository, Query derivation, Service pattern, @Transactional, @ControllerAdvice, @ExceptionHandler
 
 ---
 
-### 🌐 Fase 3: API REST Controllers
+### ✅ Fase 3: API REST Controllers (COMPLETADA)
 **Objetivo**: Exponer operaciones mediante HTTP
 
-- [ ] **REST Controller**
-  - [ ] Crear `UsuarioController` con @RestController
-  - [ ] GET /api/usuarios (listar todos)
-  - [ ] GET /api/usuarios/{id} (obtener por ID)
-  - [ ] POST /api/usuarios (crear nuevo)
-  - [ ] PUT /api/usuarios/{id} (actualizar)
-  - [ ] DELETE /api/usuarios/{id} (eliminar)
+- [x] **REST Controller**
+  - [x] Crear `UsuarioController` con @RestController
+  - [x] GET /api/usuarios (listar todos)
+  - [x] GET /api/usuarios/{id} (obtener por ID)
+  - [x] POST /api/usuarios (crear nuevo)
+  - [x] PUT /api/usuarios/{id} (actualizar)
+  - [x] DELETE /api/usuarios/{id} (eliminar)
+  - [x] GET /api/usuarios/buscar (búsqueda por nombre)
 
-- [ ] **Request/Response DTOs**
-  - [ ] CreateUsuarioRequest
-  - [ ] UpdateUsuarioRequest
-  - [ ] UsuarioResponse
-  - [ ] ErrorResponse
+- [x] **Request/Response DTOs**
+  - [x] CrearUsuarioRequest
+  - [x] ErrorResponse
+  - [x] ActualizarUsuarioRequest
+  - [x] UsuarioResponse
 
-- [ ] **Validación**
-  - [ ] @Valid en parámetros de controlador
-  - [ ] Bean Validation (@NotNull, @Email, @NotBlank)
-  - [ ] Custom validators
+- [x] **Validación**
+  - [x] @Valid en parámetros de controlador
+  - [x] Bean Validation (@NotNull, @Email, @NotBlank)
+  - [x] Exception handling centralizado
 
-**Conceptos**: @RestController, @RequestMapping, HTTP methods, DTOs, request validation, exception handling
+**Conceptos**: @RestController, @RequestMapping, HTTP methods, DTOs, request validation, exception handling, @ControllerAdvice
 
 ---
 
@@ -287,6 +305,29 @@ Cada commit/cambio será marcado aquí con la fase correspondiente y breve descr
 - ✅ Gradle configurado con dependencias
 - ✅ CLAUDE.md creado como roadmap
 
+### [2026-08-14] Fase 2 & 3: CRUD, Controllers y Exception Handling
+- ✅ UsuarioRepository completado con custom queries (@Query, findByEmail, etc.)
+- ✅ UsuarioService implementado con CRUD completo (@Transactional)
+- ✅ UsuarioController con todos los endpoints REST
+- ✅ CrearUsuarioRequest DTO con validación Bean Validation
+- ✅ GlobalExceptionHandler (@ControllerAdvice) implementado
+  - Mapeo de UsuarioNoEncontradoException → 404
+  - Mapeo de IllegalArgumentException → 400 (emails duplicados)
+  - Mapeo de MethodArgumentNotValidException → 400 (validación)
+  - ErrorResponse DTO con formato consistente
+- ✅ Swagger/OpenAPI configurado y funcional
+- ✅ Logging con SLF4J en Service y Controller
+
+**Próximos pasos**: DTOs de respuesta (ActualizarUsuarioRequest, UsuarioResponse) y Testing
+
+### [2026-10-23] Fase 3 completada: DTOs de salida y fix de Lombok
+- ✅ Corregido `@BuilderCer` → `@Builder` en `ErrorResponse` (typo que impedía compilar, usado por `GlobalExceptionHandler`)
+- ✅ `ActualizarUsuarioRequest` DTO creado (mismo patrón que `CrearUsuarioRequest`, con validación)
+- ✅ `UsuarioResponse` DTO creado con `fromEntity(Usuario)` para no exponer la entidad JPA en las respuestas HTTP
+- ✅ `UsuarioController` actualizado: todos los endpoints devuelven `UsuarioResponse`; PUT ahora valida con `@Valid ActualizarUsuarioRequest` en vez de recibir `Usuario` crudo
+
+**Próximos pasos**: Fase 5 - Testing (JUnit 5, Mockito, MockMvc)
+
 ---
 
 ## 🔗 Recursos Útiles
@@ -317,5 +358,5 @@ R: Versión reciente, requiere Java 17+, includes Virtual Threads support.
 
 ---
 
-**Última actualización**: 2026-08-12
-**Estado**: En progreso (Fase 1 completada, inicia Fase 2)
+**Última actualización**: 2026-08-14
+**Estado**: En progreso (Fase 1-2 completadas, Fase 3 casi completada, próximo: Testing)
