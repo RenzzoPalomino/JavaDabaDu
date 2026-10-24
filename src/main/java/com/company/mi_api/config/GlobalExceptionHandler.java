@@ -5,6 +5,7 @@ import com.company.mi_api.exception.UsuarioNoEncontradoException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.ObjectError;
 
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -50,6 +51,22 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
+                .body(error);
+    }
+
+    // Manejar credenciales inválidas en login → 401
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
+
+        ErrorResponse error = ErrorResponse.builder()
+                .codigo("CREDENCIALES_INVALIDAS")
+                .mensaje("Email o contraseña incorrectos")
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
                 .body(error);
     }
 

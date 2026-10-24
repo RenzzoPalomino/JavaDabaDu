@@ -18,16 +18,26 @@ mi-api/
 │   │   ├── model/
 │   │   │   └── Usuario.java               (Entidad JPA completa)
 │   │   ├── controller/
-│   │   │   └── UsuarioController.java     (REST endpoints CRUD)
+│   │   │   ├── UsuarioController.java     (REST endpoints CRUD)
+│   │   │   └── AuthController.java        (register / login)
 │   │   ├── service/
-│   │   │   └── UsuarioService.java        (Lógica de negocio)
+│   │   │   ├── UsuarioService.java        (Lógica de negocio)
+│   │   │   └── AuthService.java           (Registro y login con JWT)
 │   │   ├── repository/
 │   │   │   └── UsuarioRepository.java     (JpaRepository + custom queries)
 │   │   ├── dto/
 │   │   │   ├── CrearUsuarioRequest.java   (Request validation)
+│   │   │   ├── ActualizarUsuarioRequest.java
+│   │   │   ├── UsuarioResponse.java       (Respuesta sin exponer la entidad)
+│   │   │   ├── RegistroRequest.java / LoginRequest.java / AuthResponse.java
 │   │   │   └── ErrorResponse.java         (Respuesta de error global)
 │   │   ├── exception/
 │   │   │   └── UsuarioNoEncontradoException.java
+│   │   ├── security/
+│   │   │   ├── SecurityConfig.java        (Filter chain, BCrypt, roles)
+│   │   │   ├── JwtUtil.java               (Generar/validar tokens)
+│   │   │   ├── JwtAuthFilter.java         (Filtro por request)
+│   │   │   └── CustomUserDetailsService.java
 │   │   └── config/
 │   │       └── GlobalExceptionHandler.java (Manejo centralizado de excepciones)
 │   └── test/
@@ -132,15 +142,19 @@ JUnit 5 (via platform launcher)
 
 ---
 
-### 🔐 Fase 4: Seguridad & Autenticación
+### ✅ Fase 4: Seguridad & Autenticación (COMPLETADA)
 **Objetivo**: Proteger endpoints
 
-- [ ] Spring Security basic setup
-- [ ] JWT tokens
-- [ ] Roles y permisos (RBAC)
-- [ ] Password encoding (BCrypt)
+- [x] Spring Security basic setup (`SecurityConfig`, filter chain stateless)
+- [x] JWT tokens (`JwtUtil` genera/valida, `JwtAuthFilter` los procesa por request)
+- [x] Roles y permisos (RBAC) — enum `Rol` (USER/ADMIN); DELETE de usuarios requiere ADMIN
+- [x] Password encoding (BCrypt vía `PasswordEncoder` bean)
+- [x] `POST /api/auth/register` y `POST /api/auth/login`
+- [x] 401 para credenciales inválidas (`AuthenticationException` en GlobalExceptionHandler)
 
-**Conceptos**: Security, Authentication, Authorization, JWT, Spring Security
+**Conceptos**: Security, Authentication, Authorization, JWT, Spring Security, BCrypt, RBAC, filtros servlet, SecurityContext
+
+**Pendiente para después**: refresh tokens, logout/blacklist de tokens, endpoint para que un ADMIN cambie el rol de otro usuario.
 
 ---
 
@@ -325,6 +339,21 @@ Cada commit/cambio será marcado aquí con la fase correspondiente y breve descr
 - ✅ `ActualizarUsuarioRequest` DTO creado (mismo patrón que `CrearUsuarioRequest`, con validación)
 - ✅ `UsuarioResponse` DTO creado con `fromEntity(Usuario)` para no exponer la entidad JPA en las respuestas HTTP
 - ✅ `UsuarioController` actualizado: todos los endpoints devuelven `UsuarioResponse`; PUT ahora valida con `@Valid ActualizarUsuarioRequest` en vez de recibir `Usuario` crudo
+
+**Próximos pasos**: Fase 5 - Testing (JUnit 5, Mockito, MockMvc)
+
+### [2026-10-23] Fase 4 completada: Spring Security + JWT + RBAC
+- ✅ Dependencias: `spring-boot-starter-security`, `jjwt` 0.12.6
+- ✅ `Usuario` ahora tiene `password` (hash BCrypt) y `rol` (enum `Rol`: USER/ADMIN)
+- ✅ `SecurityConfig`: filter chain stateless, CSRF deshabilitado, reglas de autorización
+  (`/api/auth/**` y Swagger públicos; DELETE de usuarios solo ADMIN; el resto autenticado)
+- ✅ `JwtUtil` (generar/validar tokens), `JwtAuthFilter` (autentica cada request),
+  `CustomUserDetailsService` (puente Usuario ↔ Spring Security)
+- ✅ `AuthService` + `AuthController`: `POST /api/auth/register` y `POST /api/auth/login`,
+  ambos devuelven un JWT
+- ✅ `GlobalExceptionHandler`: `AuthenticationException` → 401
+- ⚠️ Nota: si había usuarios previos en la BD de desarrollo, se recrearon (password/rol
+  son NOT NULL y `ddl-auto=update` no hace backfill)
 
 **Próximos pasos**: Fase 5 - Testing (JUnit 5, Mockito, MockMvc)
 
